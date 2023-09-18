@@ -28,6 +28,8 @@ var (
 	config ScuttleConfig
 )
 
+var log = simpleLog
+
 func main() {
 	config = getConfig()
 
@@ -76,7 +78,7 @@ func main() {
 	go func() {
 
 		for sig := range stop {
-			if sig == syscall.SIGURG {
+			if sig == syscall.SIGURG && !config.BypassUrgentSignal {
 				// SIGURG is used by Golang for it's own purposes, ignore it as these signals
 				// are most likely "junk" from Golang not from K8s/Docker
 				log(fmt.Sprintf("Received signal '%v', ignoring", sig))

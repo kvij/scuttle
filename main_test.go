@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -25,7 +27,7 @@ var (
 // Can be called multiple times, but will only init once per test session
 func initTestingEnv() {
 	// Always update env variables for new test
-	os.Setenv("SCUTTLE_LOGGING", "true")
+	os.Setenv("SCUTTLE_LOGGING", "false")
 	config = getConfig()
 
 	// Do not restart http servers for each test
@@ -71,7 +73,7 @@ func clearTestingEnv() {
 	os.Setenv("ENVOY_ADMIN_API", "")
 	os.Setenv("QUIT_WITHOUT_ENVOY_TIMEOUT", "")
 	os.Setenv("WAIT_FOR_ENVOY_TIMEOUT", "")
-	os.Setenv("GENERIC_QUIT_ENDPOINTS","")
+	os.Setenv("GENERIC_QUIT_ENDPOINTS", "")
 }
 
 // Inits the test environment and starts the blocking
@@ -200,4 +202,38 @@ func TestWaitForEnvoyTimeoutContinueWithoutEnvoy(t *testing.T) {
 		// we expect a cancellation when the time is up
 		t.Fail()
 	}
+}
+
+func ExampleMain() {
+	fmt.Println("Starting ExampleMain")
+	os.Setenv("BYPASS_SIGURG", "true")
+	os.Setenv("ISTIO_QUIT_API", "none")
+	os.Setenv("SCUTTLE_LOGGING", "true")
+	os.Args = []string{"scuttle", "sleep", "1"}
+	config = getConfig()
+	defer clearTestingEnv()
+
+	fakeLog := func(message string) {
+		if config.LoggingEnabled {
+			if strings.Contains(message, "pid") {
+				return
+			}
+			fmt.Printf("scuttle: %s\n", strings.TrimSpace(message))
+		}
+	}
+	log = fakeLog
+
+	go main()
+	time.Sleep(10 * time.Millisecond)
+	syscall.Kill(syscall.Getpid(), syscall.SIGURG)
+	time.Sleep(10 * time.Millisecond)
+
+	log = simpleLog
+	// Output:
+	// Starting ExampleMain
+	// scuttle: ENVOY_ADMIN_API:
+	// scuttle: ISTIO_QUIT_API: none
+	// scuttle: BYPASS_SIGURG: true
+	// scuttle: Logging is now enabled
+	// scuttle: Received signal 'urgent I/O condition', passing to child
 }

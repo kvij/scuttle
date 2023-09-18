@@ -17,11 +17,12 @@ type ScuttleConfig struct {
 	NeverKillIstio          bool
 	IstioFallbackPkill      bool
 	NeverKillIstioOnFailure bool
+	BypassUrgentSignal      bool
 	GenericQuitEndpoints    []string
 	QuitWithoutEnvoyTimeout time.Duration
 }
 
-func log(message string) {
+func simpleLog(message string) {
 	if config.LoggingEnabled {
 		fmt.Printf("%s scuttle: %s\n", time.Now().UTC().Format("2006-01-02T15:04:05Z"), message)
 	}
@@ -39,6 +40,7 @@ func getConfig() ScuttleConfig {
 		NeverKillIstio:          getBoolFromEnv("NEVER_KILL_ISTIO", false, loggingEnabled),
 		IstioFallbackPkill:      getBoolFromEnv("ISTIO_FALLBACK_PKILL", false, loggingEnabled),
 		NeverKillIstioOnFailure: getBoolFromEnv("NEVER_KILL_ISTIO_ON_FAILURE", false, loggingEnabled),
+		BypassUrgentSignal:      getBoolFromEnv("BYPASS_SIGURG", false, loggingEnabled),
 		GenericQuitEndpoints:    getStringArrayFromEnv("GENERIC_QUIT_ENDPOINTS", make([]string, 0), loggingEnabled),
 		QuitWithoutEnvoyTimeout: getDurationFromEnv("QUIT_WITHOUT_ENVOY_TIMEOUT", time.Duration(0), loggingEnabled),
 	}
