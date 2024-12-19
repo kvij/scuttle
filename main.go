@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
+	"github.com/cenkalti/backoff/v5"
 )
 
 // ServerInfo ... represents the response from Envoy's server info endpoint
@@ -200,34 +200,22 @@ func waitForEnvoy() context.Context {
 func pollEnvoy(ctx context.Context, cancel context.CancelFunc) {
 	url := fmt.Sprintf("%s/server_info", config.EnvoyAdminAPI)
 	pollCount := 0
-	b := backoff.NewExponentialBackOff()
-	// We wait forever for envoy to start. In practice k8s will kill the pod if we take too long.
-	b.MaxElapsedTime = config.WaitForEnvoyTimeout
 
-	if config.QuitWithoutEnvoyTimeout > time.Duration(0) {
-		b.MaxElapsedTime = config.QuitWithoutEnvoyTimeout
-	}
-
-	err := backoff.Retry(func() error {
+	backoff.Retry(ctx, func() (int, error) {
 		pollCount++
 		info, err := getServerInfo(ctx, url)
 		if err != nil {
 			log(fmt.Sprintf("Polling Envoy (%d), error: %s", pollCount, err))
-			return err
+			return pollCount, err
 		}
 
 		if info.State != "LIVE" {
 			log(fmt.Sprintf("Polling Envoy (%d), status: Not ready yet", pollCount))
-			return errors.New("not live yet")
+			return pollCount, errors.New("not live yet")
 		}
 
-		return nil
-	}, b)
-
-	// Ensure context exceeds deadline when exponential backoff gives up before MaxElapsedTime is reached.
-	if err != nil && b.MaxElapsedTime > time.Duration(0) {
-		time.Sleep(b.MaxElapsedTime)
-	}
+		return pollCount, nil
+	})
 
 	// Notify the context that it's done, if it has not already been cancelled
 	cancel()
