@@ -20,7 +20,7 @@ services:
     networks:
       - scuttle
   envoy:
-    image: envoyproxy/envoy:v1.33.2
+    image: envoyproxy/envoy:v1.34.0
     networks:
       - scuttle
     ports:
