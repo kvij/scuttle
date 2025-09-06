@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
       # On tag, get tag version without v (e.g. v1.0.0 -> 1.0.0, v1.1.1-beta -> 1.1.1-beta)
