@@ -7,7 +7,7 @@ ARG TARGETARCH
 
 COPY . /app
 WORKDIR /app
-RUN go get -d
+RUN go get
 RUN go test -test.timeout 50s 
 RUN CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" go build -o scuttle -ldflags="-X 'main.Version=${VERSION}'"
 
