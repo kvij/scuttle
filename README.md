@@ -2,6 +2,12 @@
 
 `scuttle` Is a wrapper application that makes it easy to run containers next to Istio sidecars.  It ensures the main application doesn't start until envoy is ready, and that the istio sidecar shuts down when the application exits.  This particularly useful for Jobs that need Istio sidecar injection, as the Istio pod would otherwise run indefinitely after the job is completed.
 
+> [!WARNING]
+> Only use `scuttle` if other options have been evaluated.
+> Both [Ambient Istio](https://istio.io/latest/docs/overview/dataplane-modes/) and [Kubernetes native sidecar](https://istio.io/latest/blog/2023/native-sidecars/) are more elegant solutions.  
+> Some users have reported still needing `scuttle` in conjunction with native sidecar to delay starting the service until istio is ready.
+> However it is best to avoid injecting 3rd party wrappers like scuttle for security and possible side-effects if possible.
+
 This application, if provided an `ENVOY_ADMIN_API` environment variable,
 will poll indefinitely with backoff, waiting for envoy to report itself as live, implying it has loaded cluster configuration (for example from an ADS server). Only then will it execute the command provided as an argument.
 
