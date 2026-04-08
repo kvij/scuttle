@@ -9,7 +9,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["/release\\.yaml$"],
+      "managerFilePatterns": [
+        "//release\.yaml$/"
+      ],
       "matchStrings": ["GO_VERSION: (?<currentValue>.*?)\\n"],
       "depNameTemplate": "go",
       "versioningTemplate": "semver",
