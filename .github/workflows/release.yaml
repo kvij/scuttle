@@ -60,7 +60,7 @@ jobs:
       # Build Docker image
       # On tag, push Docker image
       - name: Build Docker Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           platforms: linux/amd64,linux/arm64
           push: ${{ startsWith(github.ref, 'refs/tags/') }}
