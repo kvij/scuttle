@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cenkalti/backoff/v5"
+	"github.com/cenkalti/backoff/v7"
 )
 
 // ServerInfo ... represents the response from Envoy's server info endpoint
