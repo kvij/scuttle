@@ -76,9 +76,11 @@ func main() {
 	go func() {
 
 		for sig := range stop {
-			if sig == syscall.SIGURG {
+			if sig == syscall.SIGURG || sig == syscall.SIGCHLD {
 				// SIGURG is used by Golang for its own purposes, ignore it as these signals
-				// are most likely "junk" from Golang not from K8s/Docker
+				// are most likely "junk" from Golang not from K8s/Docker.
+				// SIGCHLD is sent to the parent when a child process exits and should not
+				// be forwarded to the child.
 				log(fmt.Sprintf("Received signal '%v', ignoring", sig))
 			} else if proc == nil {
 				// Signal received before the process even started. Let's just exit.
@@ -89,7 +91,11 @@ func main() {
 				log(fmt.Sprintf("Received signal '%v', passing to child", sig))
 				err := proc.Signal(sig)
 				if err != nil {
-					log(fmt.Sprintf("Failed passing signal '%v' to child, error: %s", sig, err))
+					if errors.Is(err, os.ErrProcessDone) {
+						log(fmt.Sprintf("Signal '%v' not delivered, child process already finished", sig))
+					} else {
+						log(fmt.Sprintf("Failed passing signal '%v' to child, error: %s", sig, err))
+					}
 				}
 			}
 		}
