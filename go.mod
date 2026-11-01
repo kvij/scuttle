@@ -4,4 +4,4 @@ go 1.23
 
 toolchain go1.27.3
 
-require github.com/cenkalti/backoff/v7 v7.0.1
+require github.com/cenkalti/backoff/v7 v7.0.3
